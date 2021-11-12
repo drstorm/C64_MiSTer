@@ -191,7 +191,7 @@ assign VGA_SCALER = 0;
 // 0         1         2         3          4         5         6
 // 01234567890123456789012345678901 23456789012345678901234567890123
 // 0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789ABCDEFGHIJKLMNOPQRSTUV
-// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXX
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -212,6 +212,8 @@ localparam CONF_STR = {
 	"P1O8A,Scandoubler Fx,None,HQ2x-320,HQ2x-160,CRT 25%,CRT 50%,CRT 75%;",
 	"d1P1o0,Vertical Crop,No,Yes;",
 	"P1OUV,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
+	"P1-;",
+	"P1oR,Old TV,Off,On;",
 	"P1-;",
 	"P1OD,Left SID,6581,8580;",
 	"D4P1o23,Left Filter,Default,Custom 1,Custom 2,Custom 3;",
@@ -1256,6 +1258,31 @@ end
 
 assign HDMI_FREEZE = freeze;
 
+wire bw_enable = status[59];
+
+wire [7:0] r_bw, g_bw, b_bw;
+wire hsync_bw, vsync_bw, hblank_bw, vblank_bw;
+
+jtframe_wirebw #(.WIN(8), .WOUT(8)) u_wirebw(
+    .clk(CLK_VIDEO),
+    .spl_in(ce_pix),
+    .r_in(r),
+    .g_in(g),
+    .b_in(b),
+    .HS_in(hsync_out),
+    .VS_in(vsync_out),
+    .HB_in(hblank),
+    .VB_in(vblank),
+    .enable(bw_enable),
+    .HS_out(hsync_bw),
+    .VS_out(vsync_bw),
+    .HB_out(hblank_bw),
+    .VB_out(vblank_bw),
+    .r_out(r_bw),
+    .g_out(g_bw),
+    .b_out(b_bw)
+);
+
 video_mixer #(.GAMMA(1)) video_mixer
 (
 	.CLK_VIDEO(CLK_VIDEO),
@@ -1265,13 +1292,13 @@ video_mixer #(.GAMMA(1)) video_mixer
 	.gamma_bus(gamma_bus),
 
 	.ce_pix(ce_pix),
-	.R(r),
-	.G(g),
-	.B(b),
-	.HSync(hsync_out),
-	.VSync(vsync_out),
-	.HBlank(hblank),
-	.VBlank(vblank),
+	.R(r_bw),
+	.G(g_bw),
+	.B(b_bw),
+	.HSync(hsync_bw),
+	.VSync(vsync_bw),
+	.HBlank(hblank_bw),
+	.VBlank(vblank_bw),
 
 	.HDMI_FREEZE(HDMI_FREEZE),
 	.freeze_sync(freeze_sync),
