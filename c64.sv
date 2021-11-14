@@ -55,6 +55,9 @@ module emu
 	output        VGA_DE,    // = ~(VBlank | HBlank)
 	output        VGA_F1,
 	output [1:0]  VGA_SL,
+	output [2:0]  SHADOWMASK, // Type of HDMI shadowmask overlay
+	output        MASK_ROTATE,
+	output        MASK_2X,
 	output        VGA_SCALER, // Force VGA scaler
 
 	input  [11:0] HDMI_WIDTH,
@@ -191,7 +194,7 @@ assign VGA_SCALER = 0;
 // 0         1         2         3          4         5         6
 // 01234567890123456789012345678901 23456789012345678901234567890123
 // 0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789ABCDEFGHIJKLMNOPQRSTUV
-// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -210,6 +213,7 @@ localparam CONF_STR = {
 	"P1O2,Video Standard,PAL,NTSC;",
 	"P1O45,Aspect Ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"P1O8A,Scandoubler Fx,None,HQ2x-320,HQ2x-160,CRT 25%,CRT 50%,CRT 75%;",
+	"P1oSU,Shadow Mask,None,Shadow 1,Shadow 2,RGB Stripe,MG Stripe,Mono Stripe,RYCB Stripe;",
 	"d1P1o0,Vertical Crop,No,Yes;",
 	"P1OUV,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
 	"P1-;",
@@ -1215,6 +1219,10 @@ wire scandoubler = status[10:8] || forced_scandoubler;
 assign CLK_VIDEO = clk64;
 assign VGA_SL    = (status[10:8] > 2) ? status[9:8] - 2'd2 : 2'd0;
 assign VGA_F1    = 0;
+
+assign SHADOWMASK  = status[62:60];
+assign MASK_2X     = 0;
+assign MASK_ROTATE = 0;
 
 reg [9:0] vcrop;
 reg wide;
